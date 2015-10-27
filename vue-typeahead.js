@@ -73,7 +73,7 @@ export default {
     typeaheadInput: {
       inherit: true,
       template: `
-        <input type="text" autocomplete="off" v-model="query"
+        <input type="search" autocomplete="off" v-model="query"
           v-on="
             input: update | debounce debounce,
             keydown: down|key \'down\',

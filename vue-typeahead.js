@@ -1,8 +1,24 @@
 if (typeof require === 'function') {
-  var Vue = require('vue')
+  var Vue = require('vue');
 }
 
-Vue.component('typeahead', {
+/* Usage Example
+
+<typeahead query="{{newAppointment.client.name}}" src="api/v1/clientes" on-hit="{{selectUtenteHit}}" limit="20" min="2" prepare-data="{{selectTransformUtenteData}}" inline-template debounce="400" class="open">
+  <typeahead-input class="form-control"></typeahead-input>
+  <ul class="dropdown-menu" v-show="show">
+      <li v-repeat="items" v-class="active: isActive($index)" v-on="mousedown: hit, mousemove: setActive($index)">
+        <a>
+          <span v-html="name"></span>
+          <span v-html="contact"></span>
+        </a>
+      </li>
+  </ul>
+</typeahead>
+
+*/
+
+export default {
   replace : false, // importent so I can attach a click event listener
   props: {
     data: {
@@ -26,6 +42,13 @@ Vue.component('typeahead', {
     src: {
       type: String,
       required: true
+    },
+    query :{
+      type : null,
+    },
+    debounce : {
+      type : Number,
+      default : 0
     }
   },
   attached : function() {
@@ -38,8 +61,8 @@ Vue.component('typeahead', {
   data: function () {
     return {
       items: [],
-      query: '',
-      current: 0,
+      //query: '',
+      current: -1,
       loading: false,
       show: false,
       error : false
@@ -49,20 +72,21 @@ Vue.component('typeahead', {
   components: {
     typeaheadInput: {
       inherit: true,
-      template: '<input type="text" autocomplete="off" v-model="query" v-on="keydown: down|key \'down\', keydown: up|key \'up\', keydown: hit|key \'enter\', keydown: onReset|key \'esc\', focus : focus"/>'
+      template: `
+        <input type="text" autocomplete="off" v-model="query"
+          v-on="
+            input: update | debounce debounce,
+            keydown: down|key \'down\',
+            keydown: up|key \'up\',
+            keydown: hit|key \'enter\',
+            keydown: hit|key \'tab\',
+            keydown: onReset|key \'esc\',
+            focus : focus
+          "
+        />`
     }
   },
   watch : {
-    query : function(v, o){
-      if (v && v.length > this.min)
-        this.update();
-      else {
-        this.loading = false;
-        if (!!o && !v){
-          this.onReset()
-        }
-      }
-    },
     show : function (v, o) {
       if (this.show) {
           window.document.addEventListener('click', this.outSideClickEvent);
@@ -87,9 +111,12 @@ Vue.component('typeahead', {
   methods: {
     update: function () {
       if (!this.query) {
-        this.reset();
+        this.onReset();
         return;
       }
+
+      if (this.query && this.query.length <= this.min)
+        return;
 
       this.loading = true;
 
@@ -100,7 +127,7 @@ Vue.component('typeahead', {
             this.loading = false;
             data = this.prepareData ? this.prepareData(data) : data;
             if (Array.isArray(data)){
-              this.current = 0;
+              this.current = -1;
               this.items = !!this.limit ? data.slice(0, this.limit) : data;
               this.show = (data.length > 0);
             }
@@ -118,8 +145,8 @@ Vue.component('typeahead', {
     },
 
     reset: function () {
+      //this.query = '';
       this.items = [];
-      this.query = '';
       this.loading = false;
       this.show = false;
     },
@@ -137,7 +164,13 @@ Vue.component('typeahead', {
         this.show = true;
     },
 
-    hit: function () {
+    hit: function (e) {
+      if (this.current < 0){
+        this.reset();
+        return;
+      }
+      if (this.show)
+        e.preventDefault();
       var resp = this.onHit(this.items[this.current]);
       this.show = false;
       if (resp === false){
@@ -145,12 +178,16 @@ Vue.component('typeahead', {
       }
     },
 
-    up: function () {
-      if (this.current > 0) this.current--
+    up: function (e) {
+      if (this.show)
+        e.preventDefault();
+      if (this.current > 0) this.current--;
     },
 
-    down: function () {
-      if (this.current < this.items.length-1) this.current++
+    down: function (e) {
+      if (this.show)
+        e.preventDefault();
+      if (this.current < this.items.length-1) this.current++;
     },
 
     clickRoot : function(e){
@@ -163,4 +200,4 @@ Vue.component('typeahead', {
     }
 
   }
-})
+};

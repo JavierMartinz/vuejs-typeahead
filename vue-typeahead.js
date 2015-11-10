@@ -74,15 +74,13 @@ export default {
       inherit: true,
       template: `
         <input type="search" autocomplete="off" v-model="query"
-          v-on="
-            input: update | debounce debounce,
-            keydown: down|key \'down\',
-            keydown: up|key \'up\',
-            keydown: hit|key \'enter\',
-            keydown: hit|key \'tab\',
-            keydown: onReset|key \'esc\',
-            focus : focus
-          "
+            @input="update | debounce debounce"
+            @keydown.down="down"
+            @keydown.up="up"
+            @keydown.enter="hit"
+            @keydown.tab="hit"
+            @keydown.esc="onReset"
+            @focus ="focus"
         />`
     }
   },

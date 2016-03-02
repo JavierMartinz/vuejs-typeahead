@@ -1,25 +1,26 @@
-if (typeof require === 'function') {
-  var Vue = require('vue');
-}
-
-/* Usage Example
-
-<typeahead query="{{newAppointment.client.name}}" src="api/v1/clientes" on-hit="{{selectUtenteHit}}" limit="20" min="2" prepare-data="{{selectTransformUtenteData}}" inline-template debounce="400" class="open">
-  <typeahead-input class="form-control"></typeahead-input>
+<template>
+  <input class="form-control" type="search" autocomplete="off" v-model="query"
+      @input="update | debounce debounce"
+      @keydown.down="down"
+      @keydown.up="up"
+      @keydown.enter="hit"
+      @keydown.tab="hit"
+      @keydown.esc="onReset"
+      @focus="focus"
+  />
   <ul class="dropdown-menu" v-show="show">
-      <li v-repeat="items" v-class="active: isActive($index)" v-on="mousedown: hit, mousemove: setActive($index)">
-        <a>
-          <span v-html="name"></span>
-          <span v-html="contact"></span>
-        </a>
+      <li v-for="(index, item) in items" :class="{active: isActive(index)}" @mousedown="hit" @mousemove="setActive(index)" >
+        <partial :name="templateName"></partial>
       </li>
   </ul>
-</typeahead>
+</template>
 
-*/
-
+<script>
 export default {
-  replace : false, // importent so I can attach a click event listener
+  replace : false, // false : importent so I can attach a click event listener
+  partials: {
+     'default': '<a><span v-html="item | highlight query"></span></a>',
+  },
   props: {
     data: {
       type: Object
@@ -51,6 +52,15 @@ export default {
       default : 0
     }
   },
+  init(){
+    this.$options.partials.alternative = this.$options.el.innerHTML.trim();
+  },
+  ready(){
+    if (this.$options.partials.alternative){
+      //this.$options.partials.alternative = this.alternativehtml;
+      this.templateName = 'alternative'; // this.$el.localName
+    }
+  },
   attached : function() {
     this.$el.addEventListener('click', this.clickRoot);
   },
@@ -65,24 +75,9 @@ export default {
       current: -1,
       loading: false,
       show: false,
-      error : false
+      error : false,
+      templateName : 'default'
     };
-  },
-
-  components: {
-    typeaheadInput: {
-      inherit: true,
-      template: `
-        <input type="search" autocomplete="off" v-model="query"
-            @input="update | debounce debounce"
-            @keydown.down="down"
-            @keydown.up="up"
-            @keydown.enter="hit"
-            @keydown.tab="hit"
-            @keydown.esc="onReset"
-            @focus ="focus"
-        />`
-    }
   },
   watch : {
     show : function (v, o) {
@@ -118,8 +113,8 @@ export default {
 
       this.loading = true;
 
-      this.$http.get(this.src, Object.assign({q:this.query}, this.data))
-        .success(function (data) {
+      this.$http.get(this.src, Object.assign({q:this.query}, this.data)).then(
+        ({data})=>{
           this.error = false;
           if (this.query) {
             this.loading = false;
@@ -130,11 +125,11 @@ export default {
               this.show = (data.length > 0);
             }
           }
-        }.bind(this))
-        .error(function(){
+        },
+        ()=>{ //error
             this.onReset();
             this.error = true;
-        }.bind(this));
+        });
     },
 
     onReset: function() {
@@ -197,5 +192,14 @@ export default {
       this.show = false;
     }
 
+  },
+  filters: {
+    highlight(value, phrase) {
+      if (typeof value == 'string')
+        return value.replace(new RegExp('('+phrase+')', 'gi'), '<strong>$1</strong>')
+      else
+        return value;
+    }
   }
 };
+</script>

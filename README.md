@@ -1,62 +1,62 @@
-# VueTypeahead
-
-See a live demo [here](http://pespantelis.github.io/vue-typeahead/).
+# VueJs Typeahead
 
 ## Usage
 
 ### NPM
-Available through npm as `vue-typeahead`.
+Available through npm as `vuejs-typeahead`.
 ```js
-Vue.use(require('vue-resource'))
-require('vue-typeahead')
-```
+import typeahead from 'vuejs-typeahead';
 
-### Direct include
-You can also directly include it with a `<script>` tag when you have included Vue and VueResource globally.
+export default {
+  ...
+  components : {
+    typeahead
+  },
+  methods : {
+    prepareDataFn(server){
+      return server.data;
+    },
+    selectedFn(selected){
+      ...
+    }
+  }
+}
+```
 
 ## Use in templates
-Then you can do this:
+You can do this:
 ```html
-<typeahead src="..." on-hit="{{goToPlace}}" limit="5" inline-template>
-    <div>
-        <typeahead-input></typeahead-input>
-        <ul v-show="hasItems">
-            <li v-repeat="items" v-class="active: isActive($index)" v-on="mousedown: hit, mousemove: setActive($index)">
-                <span v-html="name"></span>
-            </li>
-        </ul>
-    </div>
+<typeahead
+  class="open"
+  :query.sync="query"
+  src="api/search"
+  :on-hit="selectedFn"
+  :limit="20"
+  :min="2"
+  :prepare-data="prepareDataFn"
+  :debounce="400">
+    <a><span v-html="(item.info1 + ' : ' +  item.info2) | highlight query"></span></a>
 </typeahead>
 ```
-> You should specify the `src` and `on-hit` attributes
+> You must specify the `src` and `on-hit` attributes
 
 ## Attributes
+
 **src:** The source url.
+
+**on-hit:** The callback function which is triggered when the user hits on an item.
+
+**query:** The query string.
 
 **data** The data that would be send by request.
 
 **limit:** Limit the number of items which is shown at the list.
 
-**on-hit:** The callback function which is triggered when the user hits on an item.
-
 **prepare-data** The callback function which is triggered when the response data are received.
 
-## Key Actions
-**Down Arrow:** Highlight the previous item.
+**min** The minimum characters before quering the server
 
-**Up Arrow:** Highlight the next item.
-
-**Enter:** Hit on highlighted item.
-
-**Escape:** Hide the list.
-
-## States
-**loading:** Indicates that awaits the data.
-
-**isEmpty:** Indicates that the input is empty.
-
-**isDirty:** Indicates that the input is not empty.
-> Useful if you want to add icon indicators (see the demo)
+**debounce** Milisseconds before quering the server
 
 ## License
-VueTypeahead is released under the MIT Licence. See the bundled LICENSE file for details.
+VueJs Typeahead is released under the MIT Licence. See the bundled LICENSE file for details.

@@ -22,9 +22,6 @@ export default {
      'default': '<a><span v-html="item | highlight query"></span></a>',
   },
   props: {
-    data: {
-      type: Object
-    },
     min: {
       type: Number,
       default: 0

@@ -29,21 +29,6 @@ export default {
       type: Number,
       default: 0
     },
-    limit: {
-      type: Number,
-      default: 0
-    },
-    onHit: {
-      type: Function,
-      required: true
-    },
-    prepareData: {
-      type: Function
-    },
-    src: {
-      type: String,
-      required: true
-    },
     query :{
       type : null,
     },
@@ -57,7 +42,6 @@ export default {
   },
   ready(){
     if (this.$options.partials.alternative){
-      //this.$options.partials.alternative = this.alternativehtml;
       this.templateName = 'alternative'; // this.$el.localName
     }
   },
@@ -71,7 +55,6 @@ export default {
   data: function () {
     return {
       items: [],
-      //query: '',
       current: -1,
       loading: false,
       show: false,
@@ -113,28 +96,27 @@ export default {
 
       this.loading = true;
 
-      this.$http.get(this.src, Object.assign({q:this.query}, this.data)).then(
-        ({data})=>{
+      this.$dispatch('on-query', this.query, (data)=>{
+        if (!data){
+          this.onReset();
+          this.error = true;
+        } else {
           this.error = false;
           if (this.query) {
             this.loading = false;
-            data = this.prepareData ? this.prepareData(data) : data;
             if (Array.isArray(data)){
               this.current = -1;
-              this.items = !!this.limit ? data.slice(0, this.limit) : data;
+              this.items = data;
               this.show = (data.length > 0);
             }
           }
-        },
-        ()=>{ //error
-            this.onReset();
-            this.error = true;
-        });
+        }
+      });
     },
 
     onReset: function() {
       this.reset();
-      this.onHit(null);
+      this.$dispatch('on-select', null);
     },
 
     reset: function () {
@@ -164,7 +146,7 @@ export default {
       }
       if (this.show)
         e.preventDefault();
-      var resp = this.onHit(this.items[this.current]);
+      var resp = this.$dispatch('on-select', this.items[this.current]);
       this.show = false;
       if (resp === false){
         this.reset();

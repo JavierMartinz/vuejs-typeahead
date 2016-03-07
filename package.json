@@ -17,6 +17,7 @@
   "bugs": "https://github.com/ruimgoncalves/vuejs-typeahead/issues",
   "homepage": "",
   "scripts": {
+    "prepublish":"webpack -p",
     "dev": "webpack --watch",
     "build": "webpack -p"
   },

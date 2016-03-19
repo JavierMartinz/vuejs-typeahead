@@ -9,7 +9,7 @@
       @focus="focus"
   />
   <ul class="dropdown-menu" v-show="show">
-      <li v-for="(index, item) in items" :class="{active: isActive(index)}" @mousedown="hit" @mousemove="setActive(index)" >
+      <li v-for="(index, item) in items" :class="{'active': isActive(index)}" @mousedown="hit" @mousemove="setActive(index)" >
         <partial :name="templateName"></partial>
       </li>
   </ul>

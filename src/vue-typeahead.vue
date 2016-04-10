@@ -1,5 +1,6 @@
 <template>
   <input class="form-control" type="search" autocomplete="off" v-model="query"
+      v-el:main-input
       @input="update | debounce debounce"
       @keydown.down="down"
       @keydown.up="up"
@@ -8,7 +9,7 @@
       @keydown.esc="onReset"
       @focus="focus"
   />
-  <ul class="dropdown-menu" v-show="show">
+  <ul class="dropdown-menu" v-show="show && hasItems">
       <li v-for="(index, item) in items" :class="{'active': isActive(index)}" @mousedown="hit" @mousemove="setActive(index)" >
         <partial :name="templateName"></partial>
       </li>
@@ -28,11 +29,16 @@ export default {
     },
     query :{
       type : null,
+      required : true
     },
     debounce : {
       type : Number,
       default : 0
-    }
+    },
+    items: {
+      type: Array,
+      required : true
+    },
   },
   init(){
     this.$options.partials.alternative = this.$options.el.innerHTML.trim();
@@ -51,11 +57,9 @@ export default {
 
   data: function () {
     return {
-      items: [],
       current: -1,
       loading: false,
       show: false,
-      error : false,
       templateName : 'default'
     };
   },
@@ -66,20 +70,29 @@ export default {
       } else {
           window.document.removeEventListener('click', this.outSideClickEvent);
       }
+    },
+    items(){
+      this.current = -1;
+      if (this.loading)
+        this.loading = false;
+      // Ensures that only opens the dropdown if input has focus
+      if (window.document.activeElement == this.$els.mainInput){
+        this.show = true;
+      }
     }
   },
   computed: {
-    hasItems: function () {
-      return this.items.length > 0;
+    hasItems() {
+      return Array.isArray(this.items) && this.items.length > 0
     },
 
-    isEmpty: function () {
+    isEmpty() {
       return !this.query && !this.loading;
     },
 
-    isDirty: function () {
+    isDirty() {
       return !!this.query && !this.loading;
-    }
+    },
   },
   methods: {
     update: function () {
@@ -93,34 +106,18 @@ export default {
 
       this.loading = true;
 
-      this.$dispatch('on-query', this.query, (data)=>{
-        if (!data){
-          this.onReset();
-          this.error = true;
-        } else {
-          this.error = false;
-          if (this.query) {
-            this.loading = false;
-            if (Array.isArray(data)){
-              this.current = -1;
-              this.items = data;
-              this.show = (data.length > 0);
-            }
-          }
-        }
-      });
+      this.$dispatch('on-query', this.query);
     },
 
     onReset: function() {
       this.reset();
-      this.$dispatch('on-select', null);
+      this.$dispatch('on-select', null, -1);
     },
 
     reset: function () {
-      //this.query = '';
-      this.items = [];
       this.loading = false;
       this.show = false;
+      this.current = -1;
     },
 
     setActive: function (index) {
@@ -141,13 +138,11 @@ export default {
         this.reset();
         return;
       }
-      if (this.show)
+      if (this.hasItems && this.current >= 0)
         e.preventDefault();
-      var resp = this.$dispatch('on-select', this.items[this.current]);
-      this.show = false;
-      if (resp === false){
-        this.reset();
-      }
+
+      this.$dispatch('on-select', this.items[this.current], this.current);
+      this.reset();
     },
 
     up: function (e) {
@@ -174,10 +169,12 @@ export default {
   },
   filters: {
     highlight(value, phrase) {
-      if (typeof value == 'string')
+      if (typeof value == 'string' && phrase && phrase.length > 0){
+        phrase = phrase.replace(/\s+/g, '|');
         return value.replace(new RegExp('('+phrase+')', 'gi'), '<strong>$1</strong>')
-      else
+      }else{
         return value;
+      }
     }
   }
 };

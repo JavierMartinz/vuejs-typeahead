@@ -1,41 +1,50 @@
 # Simple VueJs Typeahead
 
-## Usage
+## Install
+```shell
+npm install vuejs-typeahead
+```
 
-### NPM
-Available through npm as `vuejs-typeahead`.
+## Usage
 ```js
 import typeahead from 'vuejs-typeahead';
 
 export default {
-  ...
+  data(){
+    return {
+      items : [],
+      selected : null
+    };
+  },
   components : {
     typeahead
   },
   methods : {
-    getInfoData(query, cb){
+    getInfoData(query){
       this.$http.get('api/search', {q : query}).then(
         ({data})=>{
-          cb(data); // data expected to be an array
+          this.items = data; // data expected to be an array
         },
         (err)=>{
-          cb(); // empty for error
+          this.items = []
         }
       );
     },
-    selectInfoData(selected){
-      ...
+    selectInfoData(selectedObj, selectedIdx){
+      this.selected = selectedObj;
+      //this.selected = this.items[selectedIdx];
     }
   }
 }
 ```
 
-## Use in templates
+## In templates
 You can do this:
 ```html
 <typeahead
   class="open"
-  :query.sync="query"
+  :items="items"
+  :query="query"
   @on-query="getInfoData"
   @on-select="selectInfoData"
   :min="2"
@@ -45,19 +54,26 @@ You can do this:
 ```
 > You must specify the `on-query` and `on-select` events.
 
+> Elements and variables are in component scope.
+
+> highlight filter is used to highlight the matched string in each li
+
 ## Attributes
 
 **query:** The query string.
 
-**min** The minimum characters before quering the server
+**min** The minimum characters before firing on-select
 
-**debounce** Milisseconds before quering the server
+**debounce** Milisseconds before firing on-select
 
 ## Events
 
-**on-query:** This is called when data is needed, here you can perform your fetch logic.
+**on-query:** This is called when data is needed.
 
-**on-select:** Is triggered when the user hits on an item.
+**on-select:** Triggered when the user hits on an item.
+
+## Notes
+There are breaking changes from version 1.1.x to 1.2.x, the callback from on-query was removed, and the item attribute is required.
 
 ## License
 VueJs Typeahead is released under the MIT Licence. See the bundled LICENSE file for details.

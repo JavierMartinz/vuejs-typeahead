@@ -170,6 +170,7 @@ export default {
   filters: {
     highlight(value, phrase) {
       if (typeof value == 'string' && phrase && phrase.length > 0){
+        phrase = phrase.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
         phrase = phrase.replace(/\s+/g, '|');
         return value.replace(new RegExp('('+phrase+')', 'gi'), '<strong>$1</strong>')
       }else{

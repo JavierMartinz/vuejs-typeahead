@@ -1,5 +1,9 @@
 <template>
-  <input class="form-control" type="search" autocomplete="off" v-model="query"
+  <input class="form-control"
+      type="search"
+      autocomplete="off"
+      v-model="query"
+      :placeholder="placeholder"
       v-el:main-input
       @input="update | debounce debounce"
       @keydown.down="down"
@@ -39,6 +43,9 @@ export default {
       type: Array,
       required : true
     },
+    placeholder: {
+      required : false
+    }
   },
   init(){
     this.$options.partials.alternative = this.$options.el.innerHTML.trim();

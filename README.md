@@ -42,7 +42,8 @@ export default {
 You can do this:
 ```html
 <typeahead
-  class="open"
+  class="dropdown open"
+  placeholder="Enter query here"
   :items="items"
   :query="query"
   @on-query="getInfoData"

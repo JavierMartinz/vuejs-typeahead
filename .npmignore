@@ -2,3 +2,4 @@
 /.editorconfig
 /.npmignore
 /webpack.config.js
+/tests

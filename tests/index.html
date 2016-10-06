@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://code.jquery.com/jquery-2.1.4.js"></script>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>Vue-Typeahead</title>
+</head>
+<body>
+
+  <div id="app" class="container">
+    <vuetypeahead
+      class="dropdown open"
+      placeholder="Enter something here"
+      :items="items"
+      :query="query"
+      @on-query="getInfoData"
+      @on-select="selectInfoData"
+      :min="2"
+      :debounce="400">
+    <a><span v-html="(item) | highlight query"></span></a>
+
+    </vuetypeahead>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/1.0.21/vue.js"></script>
+  <script src="file:../build/build.js"></script>
+
+  <script>
+
+    let vue = new Vue({
+      el: '#app',
+      data: {
+        items : [],
+        selected : null
+      },
+      components:{
+        vuetypeahead : VueJsTypeahead.default
+      },
+      methods:{
+        getInfoData(query){
+          this.items = ['1 : '+ query, '2 : '+ query, '3 : '+ query];
+        },
+        selectInfoData(obj, idx){
+          this.selected = obj;
+        }
+      }
+    });
+
+  </script>
+
+
+</body>
+</html>

@@ -16,9 +16,13 @@
             @focus="focus"
         />
         <ul class="dropdown-menu" v-show="show && hasItems">
-            <li v-for="(item, index) in items" :class="{'active': isActive(index)}" @mousedown="hit"
-                @mousemove="setActive(index)">
-                <mark>{{ item.label }}</mark>
+            <li
+                v-for="(item, index) in items"
+                :class="{'active': isActive(index)}"
+                @mousedown="hit"
+                @mousemove="setActive(index)"
+            >
+                <component :is="templateComp" :item="item"></component>
             </li>
         </ul>
     </div>
@@ -26,16 +30,14 @@
 
 <script>
     export default {
-//        partials: {
-//            'default': '<a><span v-html="item"></span></a>', // | highlight query
-//        },
         props: {
             min: { type: Number, default: 0 },
             debounce: { type: Number, default: 0 },
             items: { type: Array, required: true },
             placeholder: {},
             onQuery: { type: Function, required: true },
-            onSelect: { type: Function, required: true }
+            onSelect: { type: Function, required: true },
+            template: { type: String }
         },
 
         data() {
@@ -65,6 +67,13 @@
             }
         },
         computed: {
+            templateComp () {
+                return {
+                    template: typeof this.template === 'string' ? this.template : '<a><span v-html="item"></span></a>',
+                    props: { item: { default: null } }
+                }
+            },
+
             hasItems() {
                 return Array.isArray(this.items) && this.items.length > 0
             },
